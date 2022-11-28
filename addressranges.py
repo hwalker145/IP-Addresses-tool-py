@@ -126,7 +126,7 @@ for filepath in xlsx_paths:
     for sheetname in wb.sheetnames:
         readSheet(wb[sheetname], V4_list, V6_list)
 
-out_name: str = 'Output'
+out_name: str = 'Output.xlsx'
 
 if len(sys.argv) >= 3:
     out_name = sys.argv[2]
