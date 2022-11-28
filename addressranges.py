@@ -2,6 +2,7 @@ from netaddr import IPNetwork, cidr_merge
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl import load_workbook, Workbook
 from pathlib import Path
+import sys
 
 # main code at the bottom
 
@@ -55,7 +56,7 @@ def readSheet(sheet: Worksheet, ranges_v4: list, ranges_v6: list):
                     ranges_v6.append(net)
 
 # function outputs a workbook with the aggregated addresses
-def writeBook(workbook: Workbook, ranges_v4: list, ranges_v6: list):
+def writeBook(workbook: Workbook, ranges_v4: list, ranges_v6: list, out_file_name: str):
     # creates a sheet
     sheet = workbook.create_sheet('Output')
 
@@ -70,7 +71,7 @@ def writeBook(workbook: Workbook, ranges_v4: list, ranges_v6: list):
         sheet.cell(row+2, 2).value = str(ranges_v6[row])
 
     # saves as a workbook in xlsx directory
-    workbook.save('xlsx/Output.xlsx')
+    workbook.save(out_file_name)
 
 # searches through a worksheet object for a column header named 'Subnet'
 def findSubnetHeader(sheet: Worksheet) -> int:
@@ -114,7 +115,10 @@ V6_list = []
 # main executed code here
 
 # all applicable paths read into list
-getPaths(xlsx_paths)
+# getPaths(xlsx_paths)
+
+# since we are only working with one path
+xlsx_paths.append(sys.argv[1])
 
 # all cidr ranges read into lists
 for filepath in xlsx_paths:
@@ -122,8 +126,13 @@ for filepath in xlsx_paths:
     for sheetname in wb.sheetnames:
         readSheet(wb[sheetname], V4_list, V6_list)
 
+out_name: str = 'Output'
+
+if len(sys.argv) >= 3:
+    out_name = sys.argv[2]
+
 # written into new workbook
 wb = Workbook()
-writeBook(wb, cidr_merge(V4_list), cidr_merge(V6_list))
+writeBook(wb, cidr_merge(V4_list), cidr_merge(V6_list), out_name)
 
 # fin
