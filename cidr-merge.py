@@ -117,6 +117,9 @@ V6_list = []
 # all applicable paths read into list
 # getPaths(xlsx_paths)
 
+if len(sys.argv) < 3:
+    print("USAGE: \ninput.xlsx output.xlsx")
+
 # since we are only working with one path
 xlsx_paths.append(sys.argv[1])
 
