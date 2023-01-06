@@ -125,7 +125,7 @@ if len(sys.argv) < 3:
 # since we are only working with one path
 xlsx_paths.append(sys.argv[1])
 
-# all cidr ranges read into lists
+# all cidr ranges read into lists.
 for filepath in xlsx_paths:
     wb = load_workbook(filepath)
     for sheetname in wb.sheetnames:
