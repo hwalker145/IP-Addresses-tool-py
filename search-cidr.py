@@ -1,13 +1,15 @@
-from netaddr import IPNetwork, IPAddress, cidr_merge
-# from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl import load_workbook, cell
+from netaddr import IPNetwork, IPAddress, cidr_merge, all_matching_cidrs
+from openpyxl import load_workbook, Workbook
+from openpyxl.worksheet.worksheet import Worksheet
 from pathlib import Path
 import sys
 
+# checks if there is the correct amount of arguments on the CLI
 if len(sys.argv) < 3:
     print("USAGE: \nbook.xlsx address")
     exit()
 
+# checks the xlsx file in the CLI if it is really a .xlsx
 if Path(sys.argv[1]).suffix != ".xlsx":
     print("USAGE: \nbook.xlsx address")
     exit()
@@ -20,25 +22,41 @@ def stringToRange(input: str) -> IPNetwork:
     else:
         return IPNetwork(input)
 
+def findHeader(sheet: Worksheet, name: str) -> int:
+    for cell in sheet[1]:
+        if cell.value == name:
+            return cell.column
+        if not cell.value:
+            return 0
+
+def readSheet(sheet: Worksheet, ranges: list[IPNetwork]):
+    # finds the column with the relevant data
+    subnet_column: int = findHeader(sheet, "Subnet")
+    # iterates through that column and adds IPNetwork objects into the list
+    for column in sheet.iter_cols(subnet_column, subnet_column):
+        for cell in column[1:]:
+            # only adds to the list if it returns true (is not zero)
+            if cell.value:
+                # I call the stringtorange function to make sure each address
+                # is a proper cidr address/range
+                ranges.append(stringToRange(cell.value))
+    # returns final product
+    return ranges
+
 address = sys.argv[2]
 
-wb = load_workbook(sys.argv[1])
+wb: Workbook = load_workbook(sys.argv[1])
 
 ranges: list[IPNetwork] = []
 
-for sheetname in wb.sheetnames:
-    subNetColumn = 1
+# calling the readSheet subroutine
+for ws in wb.worksheets:
+    readSheet(ws, ranges)
 
-    while wb[sheetname].cell(1, subNetColumn).value != "Subnet":
-        subNetColumn += 1
-        if not wb[sheetname].cell(1, subNetColumn).value:
-            print("Could not find Subnet column in worksheet: " + sheetname)
-            subNetColumn = 0
+# calls the all_matching_cidrs function from netaddr
+matches: list[IPNetwork] = all_matching_cidrs(address, ranges)
 
-    if not subNetColumn:
-        continue
-
-    for row in range(2, wb[sheetname].max_row):
-        print(wb[sheetname].cell(row, subNetColumn).value)
-        
-print(ranges)
+# reports
+print(str(len(matches)) + " matching cidr\n for the given address.\n")
+for match in matches:
+    print(match.cidr)

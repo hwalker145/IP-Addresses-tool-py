@@ -77,8 +77,10 @@ def writeBook(workbook: Workbook, ranges_v4: list, ranges_v6: list, out_file_nam
 def findSubnetHeader(sheet: Worksheet) -> int:
     # searches through all column headers to find 'Subnet'
     for cell in sheet[1]:
-        if(cell.value == 'Subnet'):
+        if cell.value == 'Subnet':
             return cell.column
+        if not cell.value:
+            return 0
 
     # zero if no column header reads 'Subnet'
     return 0
