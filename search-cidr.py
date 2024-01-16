@@ -62,7 +62,7 @@ def reportMatches(sheet: Worksheet, matches: list[dict]) -> None:
         data.append([cell.value for cell in ws[m['index']]])
 
     # turns it into a df
-    df = pd.DataFrame(data[1:], columns = data[0])
+    df = pd.DataFrame(data[1:], columns = data[0], index=[m['index'] for m in matches])
 
     # TODO is to figure out how much of the df to print
     # for now it's the whole thing
