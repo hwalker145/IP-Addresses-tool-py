@@ -1,8 +1,16 @@
-from netaddr import IPNetwork, IPAddress, cidr_merge, all_matching_cidrs
+from netaddr import IPNetwork, all_matching_cidrs
 from openpyxl import load_workbook, Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from pathlib import Path
 import sys
+
+# accepted header names
+headers = [
+    'subnets',
+    'subnet',
+    'cidrs',
+    'cidr'
+]
 
 # checks if there is the correct amount of arguments on the CLI
 if len(sys.argv) < 3:
@@ -22,16 +30,16 @@ def stringToRange(input: str) -> IPNetwork:
     else:
         return IPNetwork(input)
 
-def findHeader(sheet: Worksheet, name: str) -> int:
+def findHeader(sheet: Worksheet) -> int:
     for cell in sheet[1]:
-        if cell.value == name:
+        if cell.value in headers:
             return cell.column
         if not cell.value:
             return 0
 
 def readSheet(sheet: Worksheet, ranges: list[IPNetwork]):
     # finds the column with the relevant data
-    subnet_column: int = findHeader(sheet, "Subnet")
+    subnet_column: int = findHeader(sheet)
     # iterates through that column and adds IPNetwork objects into the list
     for column in sheet.iter_cols(subnet_column, subnet_column):
         for cell in column[1:]:
@@ -57,6 +65,6 @@ for ws in wb.worksheets:
 matches: list[IPNetwork] = all_matching_cidrs(address, ranges)
 
 # reports
-print(str(len(matches)) + " matching cidr\n for the given address.\n")
+print(str(len(matches)) + " matching cidr\nfor the given address.\n")
 for match in matches:
     print(match.cidr)
